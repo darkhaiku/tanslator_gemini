@@ -3,304 +3,311 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مترجم هوشمند زیرنویس (Gemini Pro)</title>
+    <title>SubTranslate Pro | Gemini 2.5</title>
     <link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary: #4a90e2;
-            --secondary: #f3f4f6;
-            --accent: #10b981;
-            --danger: #ef4444;
-            --text-dark: #1f2937;
+            --primary: #2563eb;
+            --success: #059669;
+            --bg: #f1f5f9;
+            --card: #ffffff;
         }
 
         body {
             font-family: 'Vazirmatn', sans-serif;
-            background-color: #f8fafc;
-            color: var(--text-dark);
+            background-color: var(--bg);
             margin: 0;
             padding: 20px;
-            line-height: 1.6;
+            color: #1e293b;
         }
 
         .container {
-            max-width: 900px;
+            max-width: 1000px;
             margin: 0 auto;
-            background: white;
-            padding: 30px;
-            border-radius: 15px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            background: var(--card);
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
         }
 
-        header {
+        .header {
             text-align: center;
+            border-bottom: 2px solid #e2e8f0;
             margin-bottom: 30px;
-            border-bottom: 2px solid var(--secondary);
             padding-bottom: 20px;
         }
 
-        .config-section, .upload-section {
-            background: var(--secondary);
-            padding: 20px;
-            border-radius: 10px;
+        .grid-config {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
             margin-bottom: 20px;
         }
 
-        .input-group {
-            margin-bottom: 15px;
+        .input-box {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
         }
 
-        label {
-            display: block;
-            font-weight: bold;
-            margin-bottom: 5px;
+        label { font-weight: 700; font-size: 0.9rem; }
+
+        input, select {
+            padding: 12px;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            outline: none;
+            transition: border 0.3s;
         }
 
-        input[type="text"], input[type="password"], textarea, select {
-            width: 100%;
+        input:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+
+        .upload-area {
+            border: 2px dashed #cbd5e1;
+            padding: 30px;
+            text-align: center;
+            border-radius: 15px;
+            cursor: pointer;
+            margin-bottom: 20px;
+            transition: background 0.3s;
+        }
+
+        .upload-area:hover { background: #f8fafc; border-color: var(--primary); }
+
+        #chunks-list {
+            margin-top: 30px;
+            max-height: 500px;
+            overflow-y: auto;
             padding: 10px;
-            border: 1px solid #d1d5db;
-            border-radius: 5px;
-            box-sizing: border-box;
-            font-family: inherit;
+            background: #f8fafc;
+            border-radius: 10px;
+        }
+
+        .chunk-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 10px;
+            border: 1px solid #e2e8f0;
         }
 
         .btn {
-            cursor: pointer;
             padding: 10px 20px;
-            border: none;
-            border-radius: 5px;
-            font-weight: bold;
-            transition: all 0.3s;
-        }
-
-        .btn-primary { background: var(--primary); color: white; }
-        .btn-primary:hover { background: #357abd; }
-        .btn-success { background: var(--accent); color: white; }
-        .btn-merge { background: #8b5cf6; color: white; width: 100%; margin-top: 20px; font-size: 1.1rem; }
-
-        #chunkContainer {
-            margin-top: 30px;
-        }
-
-        .chunk-card {
-            border: 1px solid #e5e7eb;
-            padding: 15px;
-            margin-bottom: 15px;
             border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
             display: flex;
-            justify-content: space-between;
             align-items: center;
-            background: #fff;
+            gap: 8px;
+            transition: opacity 0.3s;
         }
 
-        .status {
-            font-size: 0.9rem;
-            padding: 4px 8px;
-            border-radius: 4px;
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn-translate { background: var(--primary); color: white; }
+        .btn-download { background: var(--success); color: white; }
+        .btn-merge { background: #7c3aed; color: white; width: 100%; margin-top: 20px; justify-content: center; }
+
+        .badge {
+            font-size: 0.75rem;
+            padding: 4px 12px;
+            border-radius: 20px;
+            background: #e2e8f0;
         }
 
-        .status-pending { background: #fef3c7; color: #92400e; }
-        .status-done { background: #d1fae5; color: #065f46; }
+        .status-done { background: #dcfce7; color: #166534; }
 
-        .loading-spinner {
-            display: none;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255,255,255,0.3);
+        /* Loader */
+        .spinner {
+            width: 18px;
+            height: 18px;
+            border: 2px solid #ffffff;
+            border-bottom-color: transparent;
             border-radius: 50%;
-            border-top-color: #fff;
-            animation: spin 1s ease-in-out infinite;
-            margin-left: 10px;
+            display: none;
+            animation: rotation 1s linear infinite;
         }
 
-        @keyframes spin { to { transform: rotate(360deg); } }
-
-        .hidden { display: none; }
+        @keyframes rotation { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <header>
-        <h1>مترجم هوشمند زیرنویس 🚀</h1>
-        <p>ترجمه سلیس انگلیسی به فارسی با استفاده از Google Gemini</p>
-    </header>
+    <div class="header">
+        <h1>مترجم هوشمند Gemini 2.5 💎</h1>
+        <p>ترجمه سلیس زیرنویس با حفظ ساختار و تخصص موضوعی</p>
+    </div>
 
-    <div class="config-section">
-        <div class="input-group">
-            <label>Google Gemini API Key:</label>
-            <input type="password" id="apiKey" placeholder="کلید API خود را اینجا وارد کنید...">
+    <div class="grid-config">
+        <div class="input-box">
+            <label>Gemini API Key:</label>
+            <input type="password" id="apiKey" placeholder="AIzaSy...">
         </div>
-        <div class="input-group">
-            <label>موضوع زیرنویس (جهت شخصی‌سازی لحن ترجمه):</label>
-            <input type="text" id="context" placeholder="مثلاً: تکنولوژی، پزشکی، مستند حیات وحش، فیلم درام...">
+        <div class="input-box">
+            <label>موضوع محتوا (Context):</label>
+            <input type="text" id="context" placeholder="مثلاً: برنامه نویسی، پزشکی، کمدی...">
         </div>
     </div>
 
-    <div class="upload-section">
-        <label>انتخاب فایل زیرنویس (SRT یا VTT):</label>
-        <input type="file" id="fileInput" accept=".srt,.vtt">
-        <p id="fileInfo" style="margin-top:10px; font-size:0.9rem; color:#666;"></p>
+    <div class="upload-area" onclick="document.getElementById('fileInput').click()">
+        <strong>فایل SRT یا VTT را اینجا بکشید یا کلیک کنید</strong>
+        <input type="file" id="fileInput" accept=".srt,.vtt" hidden>
+        <p id="fileNameDisplay"></p>
     </div>
 
-    <div id="chunkContainer">
+    <div id="chunks-list">
         </div>
 
-    <button id="mergeBtn" class="btn btn-merge hidden">ادغام و دانلود نهایی یکپارچه (Merged SRT)</button>
+    <button id="mergeBtn" class="btn btn-merge" style="display: none;">
+        ادغام و دانلود فایل نهایی (Merged)
+    </button>
 </div>
 
 <script>
-    let subtitleChunks = [];
-    let translatedChunks = [];
-
-    // ساختار ذخیره سازی قطعات
-    class SubtitleChunk {
-        constructor(id, rawText) {
-            this.id = id;
-            this.rawText = rawText;
-            this.translatedText = null;
-            this.isProcessing = false;
-        }
-    }
+    let chunks = [];
+    const MODEL_ID = "gemini-2.5-flash"; // مدل مورد تایید شما
 
     document.getElementById('fileInput').addEventListener('change', async (e) => {
         const file = e.target.files[0];
         if (!file) return;
-
+        
+        document.getElementById('fileNameDisplay').innerText = `فایل انتخاب شده: ${file.name}`;
         const text = await file.text();
-        processFile(text);
+        prepareChunks(text);
     });
 
-    function processFile(text) {
-        const lines = text.split(/\r?\n/);
-        subtitleChunks = [];
-        translatedChunks = [];
-        document.getElementById('chunkContainer').innerHTML = '';
-        document.getElementById('mergeBtn').classList.add('hidden');
+    function prepareChunks(content) {
+        const lines = content.split(/\r?\n/);
+        chunks = [];
+        let currentChunk = [];
+        let blockCount = 0;
 
-        // تقسیم بندی بر اساس تعداد خطوط (۱۰۰ خط در هر قطعه)
-        // برای حفظ بلاک های زیرنویس، سعی میکنیم دقیق عمل کنیم
-        let currentChunkLines = [];
-        let chunkIndex = 1;
-
+        // منطق تقسیم‌بندی بر اساس بلاک‌های زیرنویس (هر ۱۰۰ بلاک یک قطعه)
+        // هر بلاک معمولاً شامل شماره، زمان و متن است
         for (let i = 0; i < lines.length; i++) {
-            currentChunkLines.push(lines[i]);
-            
-            if (currentChunkLines.length >= 400 || i === lines.length - 1) { // تقریبی ۱۰۰ بلاک زیرنویس
-                const chunkRaw = currentChunkLines.join('\n');
-                const chunk = new SubtitleChunk(chunkIndex++, chunkRaw);
-                subtitleChunks.push(chunk);
-                renderChunk(chunk);
-                currentChunkLines = [];
+            currentChunk.push(lines[i]);
+            // اگر خط خالی دیدیم یعنی یک بلاک تمام شده
+            if (lines[i].trim() === "") blockCount++;
+
+            if (blockCount >= 100 || i === lines.length - 1) {
+                chunks.push({
+                    id: chunks.length + 1,
+                    text: currentChunk.join('\n'),
+                    translated: null,
+                    status: 'pending'
+                });
+                currentChunk = [];
+                blockCount = 0;
             }
         }
-        
-        document.getElementById('fileInfo').innerText = `فایل به ${subtitleChunks.length} قطعه تقسیم شد.`;
+        renderChunks();
     }
 
-    function renderChunk(chunk) {
-        const div = document.createElement('div');
-        div.className = 'chunk-card';
-        div.id = `chunk-${chunk.id}`;
-        div.innerHTML = `
-            <div>
-                <strong>قطعه شماره ${chunk.id}</strong>
-                <span id="status-${chunk.id}" class="status status-pending">منتظر ترجمه</span>
+    function renderChunks() {
+        const list = document.getElementById('chunks-list');
+        list.innerHTML = chunks.map(chunk => `
+            <div class="chunk-item" id="item-${chunk.id}">
+                <div>
+                    <strong>بخش ${chunk.id}</strong>
+                    <span class="badge" id="badge-${chunk.id}">در انتظار</span>
+                </div>
+                <div style="display: flex; gap: 10px;">
+                    <button class="btn btn-translate" onclick="startTranslation(${chunk.id})" id="btn-${chunk.id}">
+                        <span class="spinner" id="spin-${chunk.id}"></span>
+                        ترجمه
+                    </button>
+                    <button class="btn btn-download" onclick="downloadChunk(${chunk.id})" id="dl-${chunk.id}" style="display:none">
+                        دانلود
+                    </button>
+                </div>
             </div>
-            <div>
-                <button class="btn btn-primary" onclick="translateChunk(${chunk.id})">
-                    <span id="text-${chunk.id}">ترجمه این بخش</span>
-                    <div id="loader-${chunk.id}" class="loading-spinner"></div>
-                </button>
-                <button id="dl-${chunk.id}" class="btn btn-success hidden" onclick="downloadSingleChunk(${chunk.id})">دانلود</button>
-            </div>
-        `;
-        document.getElementById('chunkContainer').appendChild(div);
+        `).join('');
     }
 
-    async function translateChunk(id) {
+    async function startTranslation(id) {
         const apiKey = document.getElementById('apiKey').value;
         const context = document.getElementById('context').value || "عمومی";
-        const chunk = subtitleChunks.find(c => c.id === id);
+        const chunk = chunks.find(c => c.id === id);
 
-        if (!apiKey) {
-            alert("لطفاً ابتدا API Key را وارد کنید.");
-            return;
-        }
+        if (!apiKey) return alert("لطفا ابتدا API Key را وارد کنید.");
 
-        toggleLoading(id, true);
+        // UI State: Loading
+        const btn = document.getElementById(`btn-${id}`);
+        const spin = document.getElementById(`spin-${id}`);
+        btn.disabled = true;
+        spin.style.display = "inline-block";
 
-        const prompt = `
-            You are a professional translator expert in ${context}. 
-            Translate the following English subtitle content (SRT/VTT format) into fluent, natural, and idiomatic Persian (Farsi).
-            
-            Strict Rules:
-            1. Keep the timecodes and sequence numbers EXACTLY as they are. Do not change any numbers or arrows.
-            2. Translate the text with the soul of the message. It should sound like a native Persian speaker, not a machine.
-            3. If the context is "${context}", use the specific terminology of that field.
-            4. Do not add any explanations, only return the translated subtitle content.
-            
-            Content to translate:
-            ${chunk.rawText}
-        `;
+        const systemPrompt = `You are an expert translator specializing in ${context}. 
+        Translate the following English subtitles into Persian (Farsi).
+        
+        CRITICAL RULES:
+        1. Keep all timecodes (e.g., 00:00:10,000 --> 00:00:12,000) and line numbers UNTOUCHED.
+        2. Translate into "Fluent, Natural, and Idiomatic Persian" (Persian: فارسی سلیس و روان).
+        3. Do not use robotic or formal literal translation. Capture the 'soul' and tone of the message.
+        4. If the topic is ${context}, use the appropriate terminology of that field.
+        5. Return ONLY the translated subtitle text.`;
 
         try {
-            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+            const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${MODEL_ID}:generateContent?key=${apiKey}`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
-                    contents: [{ parts: [{ text: prompt }] }]
+                    contents: [{ parts: [{ text: systemPrompt + "\n\nContent:\n" + chunk.text }] }]
                 })
             });
 
             const data = await response.json();
-            const translatedText = data.candidates[0].content.parts[0].text;
-
-            chunk.translatedText = translatedText;
-            document.getElementById(`status-${id}`).innerText = "ترجمه شد";
-            document.getElementById(`status-${id}`).className = "status status-done";
-            document.getElementById(`dl-${id}`).classList.remove('hidden');
             
-            checkAllFinished();
-        } catch (error) {
-            console.error(error);
-            alert("خطا در ارتباط با Gemini. وضعیت کنسول را چک کنید.");
+            if (data.error) throw new Error(data.error.message);
+
+            const result = data.candidates[0].content.parts[0].text;
+            chunk.translated = result;
+            chunk.status = 'done';
+
+            // UI Update: Success
+            document.getElementById(`badge-${id}`).innerText = "تکمیل شد";
+            document.getElementById(`badge-${id}`).classList.add('status-done');
+            document.getElementById(`dl-${id}`).style.display = "flex";
+            btn.style.display = "none";
+
+            checkMergeButton();
+
+        } catch (err) {
+            console.error(err);
+            alert("خطا در ترجمه بخش " + id + ": " + err.message);
+            btn.disabled = false;
         } finally {
-            toggleLoading(id, false);
+            spin.style.display = "none";
         }
     }
 
-    function toggleLoading(id, isLoading) {
-        document.getElementById(`loader-${id}`).style.display = isLoading ? 'inline-block' : 'none';
-        document.getElementById(`text-${id}`).innerText = isLoading ? 'در حال ترجمه...' : 'ترجمه این بخش';
+    function downloadChunk(id) {
+        const chunk = chunks.find(c => c.id === id);
+        saveFile(chunk.translated, `part_${id}_translated.srt`);
     }
 
-    function downloadSingleChunk(id) {
-        const chunk = subtitleChunks.find(c => c.id === id);
-        downloadFile(chunk.translatedText, `translated_part_${id}.srt`);
-    }
-
-    function checkAllFinished() {
-        const allDone = subtitleChunks.every(c => c.translatedText !== null);
+    function checkMergeButton() {
+        const allDone = chunks.every(c => c.status === 'done');
         if (allDone) {
-            document.getElementById('mergeBtn').classList.remove('hidden');
+            document.getElementById('mergeBtn').style.display = "flex";
         }
     }
 
     document.getElementById('mergeBtn').addEventListener('click', () => {
-        const fullTranslation = subtitleChunks.map(c => c.translatedText).join('\n\n');
-        downloadFile(fullTranslation, 'final_translated_subtitle.srt');
+        const finalContent = chunks.map(c => c.translated).join('\n\n');
+        saveFile(finalContent, 'final_persian_subtitles.srt');
     });
 
-    function downloadFile(content, fileName) {
+    function saveFile(content, filename) {
         const blob = new Blob([content], { type: 'text/plain' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = fileName;
-        a.click();
-        URL.revokeObjectURL(url);
+        const link = document.createElement('a');
+        link.href = URL.createObjectURL(blob);
+        link.download = filename;
+        link.click();
     }
 </script>
 
